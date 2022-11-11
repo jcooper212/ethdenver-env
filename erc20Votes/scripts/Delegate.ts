@@ -16,7 +16,7 @@ function convertStringArrayToBytes32(array: string[]) {
 }
 
 async function main() {
-  console.log("Vote");
+  console.log("Delegate");
   //const proposals = process.argv.slice(2);
   console.log(process.argv);
 
@@ -26,7 +26,7 @@ async function main() {
   const provider = ethers.getDefaultProvider("goerli", {
     alchemy: process.env.ETH_GOERLI_KEY
     });
-  const wallet = new ethers.Wallet(process.env.ETH_P4);
+  const wallet = new ethers.Wallet(process.env.ETH_P3);
   const signer = wallet.connect(provider);
   const balance = await signer.getBalance();
   console.log(`balance is ${signer.address} / ${balance} wei`);
@@ -34,7 +34,7 @@ async function main() {
   //Give Right to vote
   const ballotContractFactory = new Ballot__factory(signer);
   const ballotContract = await ballotContractFactory.attach(contractAddress);
-  const tx = await ballotContract.connect(signer).vote(1);
+  const tx = await ballotContract.connect(signer).delegate(denverAddress);
   await tx.wait();
   console.log(tx.hash);
   //for denver

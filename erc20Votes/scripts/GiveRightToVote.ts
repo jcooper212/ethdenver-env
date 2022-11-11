@@ -3,8 +3,8 @@ import { Ballot__factory } from "../typechain-types";
 
 const PROPOSALS = ["Proposal 1", "Proposal 2", "Proposal 3"];
 const contractAddress = "0xe36555Edfc41c8d8b12DE16043E9C17834C83F3b";
-const targetAddress = process.env.ETH_W3
-const denverAddress = process.env.ETH_W4;
+const targetAddress = "0xda20b99355aDb20129149D29eb7Ae9d70469E251";
+const denverAddress = "0x43610EC8743998A8D95831447BC2E59382c60775";
 
 
 function convertStringArrayToBytes32(array: string[]) {
@@ -16,7 +16,7 @@ function convertStringArrayToBytes32(array: string[]) {
 }
 
 async function main() {
-  console.log("Vote");
+  console.log("GiveRightTo Vote");
   //const proposals = process.argv.slice(2);
   console.log(process.argv);
 
@@ -24,9 +24,9 @@ async function main() {
   //yarn run ts-node --files ./scripts/GiveRightToVote.ts
 
   const provider = ethers.getDefaultProvider("goerli", {
-    alchemy: process.env.ETH_GOERLI_KEY
+    alchemy: "g1CS1wIDRIhZb0_9mofYmODfLJmh8vlH"
     });
-  const wallet = new ethers.Wallet(process.env.ETH_P4);
+  const wallet = new ethers.Wallet(process.env.ETH_PA0);
   const signer = wallet.connect(provider);
   const balance = await signer.getBalance();
   console.log(`balance is ${signer.address} / ${balance} wei`);
@@ -34,7 +34,7 @@ async function main() {
   //Give Right to vote
   const ballotContractFactory = new Ballot__factory(signer);
   const ballotContract = await ballotContractFactory.attach(contractAddress);
-  const tx = await ballotContract.connect(signer).vote(1);
+  const tx = await ballotContract.giveRightToVote(denverAddress);
   await tx.wait();
   console.log(tx.hash);
   //for denver
