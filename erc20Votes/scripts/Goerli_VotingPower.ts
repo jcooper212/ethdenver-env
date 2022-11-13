@@ -10,7 +10,7 @@ const VOTE_TOKEN_CONTRACT = '0x9E05990FBc73717C7F195fAD0177AD3B3b6A541a';
 //yarn run ts-node --files ./scripts/Deployment.ts "Proposal 1" "Proposal 2" "Proposal 3"
 
 async function main() {
-  console.log("Tokenized Ballot - Winning Proposal");
+  console.log("Tokenized Ballot - Voting Power");
   
   //connect to provider
   const provider = ethers.getDefaultProvider("goerli", {
@@ -31,10 +31,13 @@ async function main() {
   const ballotContract = await ballotFactory.attach(TOKENIZED_BALLOT_CONTRACT);
 
 
-    //Winning Proposal
-    const winningProposal = await ballotContract.winningProposal();
-    const winnerName = await ballotContract.winnerName();
-    console.log(`Winning proposal is ${(await winningProposal).toNumber()} and name ${(await winnerName).toString()}`);
+    //Voting Power
+    var vPower = await ballotContract.votingPower(VOTING_ACCOUNT);
+    console.log(`Voting Power is ${vPower.value} for account ${VOTING_ACCOUNT}`);
+
+    vPower = await ballotContract.votingPower(DELEGATE_TO_ACCOUNT);
+    console.log(`Voting Power is ${vPower.value} for account ${DELEGATE_TO_ACCOUNT}`);
+
 
 }
 

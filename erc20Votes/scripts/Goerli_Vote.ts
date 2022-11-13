@@ -10,7 +10,7 @@ const VOTE_TOKEN_CONTRACT = '0x9E05990FBc73717C7F195fAD0177AD3B3b6A541a';
 //yarn run ts-node --files ./scripts/Deployment.ts "Proposal 1" "Proposal 2" "Proposal 3"
 
 async function main() {
-  console.log("Tokenized Ballot - Give Right to Vote");
+  console.log("Tokenized Ballot - Vote");
   
   //connect to provider
   const provider = ethers.getDefaultProvider("goerli", {
