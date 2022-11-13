@@ -54,7 +54,7 @@ contract TokenizedBallot {
     }
 
     function votingPower(address account) public  returns(uint256) {
-        return voteToken.getPastVotes(account, targetBlockNum) - votePowerSpent[account];
+        return voteToken.getPastVotes(account, block.number-1) - votePowerSpent[account]; //targetBlockNum to block.number-1
     }
 
     /// @dev Computes the winning proposal taking all

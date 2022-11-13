@@ -4,30 +4,29 @@ import { TokenizedBallot__factory } from "../typechain-types/factories/contracts
 
 const PROPOSALS = ["Proposal 1", "Proposal 2", "Proposal 3"];
 const MINT_VALUE = ethers.utils.parseEther("10");
+const TOKENIZED_BALLOT_CONTRACT = '0x1a992c6688a8F57b9DDBaa59A830052ECf9ce3E7';
+const VOTE_TOKEN_CONTRACT = '0x9E05990FBc73717C7F195fAD0177AD3B3b6A541a';
 
 //yarn run ts-node --files ./scripts/Deployment.ts "Proposal 1" "Proposal 2" "Proposal 3"
-
-function convertStringArrayToBytes32(array: string[]) {
-  const bytes32Array = [];
-  for (let index = 0; index < array.length; index++) {
-    bytes32Array.push(ethers.utils.formatBytes32String(array[index]));
-  }
-  return bytes32Array;
-}
 
 async function main() {
   console.log("Tokenized Ballot - Give Right to Vote");
   
+  //connect to provider
+  const provider = ethers.getDefaultProvider("goerli", {
+    alchemy: "g1CS1wIDRIhZb0_9mofYmODfLJmh8vlH",
+  });
+  const wallet = new ethers.Wallet(process.env.ETH_P3);
+  const signer = wallet.connect(provider);
+  const balance = await signer.getBalance();
+  console.log(`W3 balance is ${signer.address} / ${balance} wei`);
 
   //Deploy Contract
   const accounts = await ethers.getSigners();
-  const VOTING_ACCOUNT = accounts[1].address;
-  const contractFactory = new VoteToken__factory(accounts[0]);
-  const contract = await contractFactory.deploy();
-  await contract.deployed();
-  console.log(`VoteToken deployed at ${contract.address}`)
-
-  
+  const VOTING_ACCOUNT = signer.address;
+  const DELEGATED_ACCOUNT = process.env.ETH_W4;
+  const contractFactory = new VoteToken__factory(signer);
+  const contract = await contractFactory.attach(VOTE_TOKEN_CONTRACT);
 
     //Mint tokens
     const mintTx = await contract.mint(VOTING_ACCOUNT, MINT_VALUE);
@@ -39,7 +38,7 @@ async function main() {
       with voting power ${votes.toString()}`);
 
     //Self Delegate
-    var delegateTx = await contract.connect(accounts[1]).delegate(VOTING_ACCOUNT);
+    var delegateTx = await contract.connect(signer).delegate(VOTING_ACCOUNT);
     await delegateTx.wait();
     votes = contract.getVotes(VOTING_ACCOUNT);
     console.log(`After delegate got ${(await votes).toString()} voting power for account ${VOTING_ACCOUNT}`)
