@@ -1,11 +1,11 @@
 import { ethers } from "hardhat";
-import { Ballot__factory } from "../typechain-types";
+import { VoteToken__factory } from "../typechain-types";
+import { TokenizedBallot__factory } from "../typechain-types/factories/contracts/TokenizedBallot.sol";
 
 const PROPOSALS = ["Proposal 1", "Proposal 2", "Proposal 3"];
-const contractAddress = "0xe36555Edfc41c8d8b12DE16043E9C17834C83F3b";
-const targetAddress = "0xda20b99355aDb20129149D29eb7Ae9d70469E251";
-const denverAddress = "0x43610EC8743998A8D95831447BC2E59382c60775";
+const MINT_VALUE = ethers.utils.parseEther("10");
 
+//yarn run ts-node --files ./scripts/Deployment.ts "Proposal 1" "Proposal 2" "Proposal 3"
 
 function convertStringArrayToBytes32(array: string[]) {
   const bytes32Array = [];
@@ -16,31 +16,43 @@ function convertStringArrayToBytes32(array: string[]) {
 }
 
 async function main() {
-  console.log("GiveRightTo Vote");
-  //const proposals = process.argv.slice(2);
-  console.log(process.argv);
+  console.log("Tokenized Ballot - Give Right to Vote");
+  
 
-  //connect to provider
-  //yarn run ts-node --files ./scripts/GiveRightToVote.ts
+  //Deploy Contract
+  const accounts = await ethers.getSigners();
+  const VOTING_ACCOUNT = accounts[1].address;
+  const contractFactory = new VoteToken__factory(accounts[0]);
+  const contract = await contractFactory.deploy();
+  await contract.deployed();
+  console.log(`VoteToken deployed at ${contract.address}`)
 
-  const provider = ethers.getDefaultProvider("goerli", {
-    alchemy: "g1CS1wIDRIhZb0_9mofYmODfLJmh8vlH"
-    });
-  const wallet = new ethers.Wallet(process.env.ETH_PA0);
-  const signer = wallet.connect(provider);
-  const balance = await signer.getBalance();
-  console.log(`balance is ${signer.address} / ${balance} wei`);
+  
 
-  //Give Right to vote
-  const ballotContractFactory = new Ballot__factory(signer);
-  const ballotContract = await ballotContractFactory.attach(contractAddress);
-  const tx = await ballotContract.giveRightToVote(denverAddress);
-  await tx.wait();
-  console.log(tx.hash);
-  //for denver
-//   tx = await ballotContract.giveRightToVote(denverAddress)
-//   await tx.wait();
-//   console.log(tx.hash);
+    //Mint tokens
+    const mintTx = await contract.mint(VOTING_ACCOUNT, MINT_VALUE);
+    await mintTx.wait();
+    console.log(`Minted ${MINT_VALUE.toString()} units to account ${VOTING_ACCOUNT}`);
+    const bal = await contract.balanceOf(VOTING_ACCOUNT);
+    var votes = await contract.getVotes(VOTING_ACCOUNT);
+    console.log(`The balance is ${(await bal).toString()} for account ${VOTING_ACCOUNT}
+      with voting power ${votes.toString()}`);
+
+    //Self Delegate
+    var delegateTx = await contract.connect(accounts[1]).delegate(VOTING_ACCOUNT);
+    await delegateTx.wait();
+    votes = contract.getVotes(VOTING_ACCOUNT);
+    console.log(`After delegate got ${(await votes).toString()} voting power for account ${VOTING_ACCOUNT}`)
+
+  
+
+  //  const tokenizedBallotFactory = new TokenizedBallot__factory(accounts[0]);
+  //  const tokenizedBallotContract = await tokenizedBallotFactory.deploy(
+  //     convertStringArrayToBytes32(PROPOSALS), voteTokenContract.address, lastBlock.number
+  //  );
+  //   await tokenizedBallotContract.deployed();
+  //   console.log(`The Tokenized Ballot smart contract was deployed at: 
+  //       ${tokenizedBallotContract.address} with targetBlock ${lastBlock.number -1}`);
 }
 
 main().catch((error) => {

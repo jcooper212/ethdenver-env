@@ -26,7 +26,7 @@ async function main() {
   console.log(`Got ${(await votes).toString()} voting power for account ${accounts[1].address}`)
 
   //Self Delegate
-  const delegateTx = await contract.connect(accounts[1]).delegate(accounts[1].address);
+  var delegateTx = await contract.connect(accounts[1]).delegate(accounts[1].address);
   await delegateTx.wait();
   votes = contract.getVotes(accounts[1].address);
   console.log(`After delegate got ${(await votes).toString()} voting power for account ${accounts[1].address}`)
@@ -36,6 +36,8 @@ async function main() {
   (await transferTx).wait();
   votes = contract.getVotes(accounts[1].address);
   console.log(`After transfer Account1 got ${(await votes).toString()} voting power for account ${accounts[1].address}`)
+  delegateTx = await contract.connect(accounts[2]).delegate(accounts[2].address);
+  await delegateTx.wait();
   votes = contract.getVotes(accounts[2].address);
   console.log(`After transfer Account2 got ${(await votes).toString()} voting power for account ${accounts[1].address}`)
 
@@ -53,7 +55,7 @@ main().catch((error) => {
   process.exitCode = 1;
 });
 
-Homework 3
+//Homework 3
 //Deployment.ts
 //GiveRightToVote.ts -- give voting tokens
 //Delegate.ts -- delegating voting power
