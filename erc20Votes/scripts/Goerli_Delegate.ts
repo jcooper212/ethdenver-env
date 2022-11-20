@@ -4,8 +4,8 @@ import { TokenizedBallot__factory } from "../typechain-types/factories/contracts
 
 const PROPOSALS = ["Proposal 1", "Proposal 2", "Proposal 3"];
 const MINT_VALUE = ethers.utils.parseEther("10");
-const TOKENIZED_BALLOT_CONTRACT = '0x1a992c6688a8F57b9DDBaa59A830052ECf9ce3E7';
-const VOTE_TOKEN_CONTRACT = '0x9E05990FBc73717C7F195fAD0177AD3B3b6A541a';
+const TOKENIZED_BALLOT_CONTRACT = '0xb55dFf80EB5B2813061Be67da8C681cdC139EACc';
+const VOTE_TOKEN_CONTRACT = '0x8474E404fB31e0b3a94E0e570e3f75E69052a792';
 
 //yarn run ts-node --files ./scripts/Deployment.ts "Proposal 1" "Proposal 2" "Proposal 3"
 
@@ -28,7 +28,7 @@ async function main() {
   const contractFactory = new VoteToken__factory(signer);
   const contract = await contractFactory.attach(VOTE_TOKEN_CONTRACT);
   const ballotFactory = new TokenizedBallot__factory(signer);
-  const ballotContract = await ballotFactory.attach(TOKENIZED_BALLOT_CONTRACT);
+  //const ballotContract = await ballotFactory.attach(TOKENIZED_BALLOT_CONTRACT);
 
 
     //Transfer tokens & delegate

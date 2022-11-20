@@ -50,13 +50,13 @@ async function main() {
 
 
 
-   const tokenizedBallotFactory = new TokenizedBallot__factory(signer);
-   const tokenizedBallotContract = await tokenizedBallotFactory.deploy(
-      convertStringArrayToBytes32(PROPOSALS), voteTokenContract.address, blockNum
-   );
-    await tokenizedBallotContract.deployed();
-    console.log(`The Tokenized Ballot smart contract was deployed at: 
-        ${tokenizedBallotContract.address} with targetBlock ${blockNum}`);
+  //  const tokenizedBallotFactory = new TokenizedBallot__factory(signer);
+  //  const tokenizedBallotContract = await tokenizedBallotFactory.deploy(
+  //     convertStringArrayToBytes32(PROPOSALS), voteTokenContract.address, blockNum
+  //  );
+  //   await tokenizedBallotContract.deployed();
+  //   console.log(`The Tokenized Ballot smart contract was deployed at: 
+  //       ${tokenizedBallotContract.address} with targetBlock ${blockNum}`);
 }
 
 main().catch((error) => {
