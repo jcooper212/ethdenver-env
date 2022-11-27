@@ -4,12 +4,12 @@ import lotteryInterface  from '../assets/Lottery.json';
 import lotteryTokenInterface  from '../assets/LotteryToken.json';
 import { HttpClient } from '@angular/common/http';
 
-const LOTTERY_ADDRESS = "0x6e8Ea30fc113C862869EAFAf3701217cC9c5c17E"; //put in BE now
-const LOTTERY_TOKEN_ADDRESS = "0xB9044E71c00D4Bf0269C474383aF3d5486024BF3";
+const LOTTERY_ADDRESS = "0x1B0eAb6A0761a64718A79135B198B4a3c566A1Dd"; //put in BE now
+const LOTTERY_TOKEN_ADDRESS = "0xea1ffa54EE4016cc738556556a131bFCfA571c0C";
 const BET_PRICE = 0.01;
 const BET_FEE = 0.02;
 const TOKEN_RATIO = 1;
-const BASE_RATIO = 1e14; //This is to make it way cheaper to buy with limited GoerliETH (alternatively convert to wei)
+const BASE_RATIO = 1e15; //This is to make it way cheaper to buy with limited GoerliETH (alternatively convert to wei)
 
 const ALCHEMY_API_KEY="g1CS1wIDRIhZb0_9mofYmODfLJmh8vlH";
 const ETHERSCAN_API_KEY="14KQ8F8MHK4JDKYIVAMEJDCWF88MYIHZ8J";
@@ -83,12 +83,15 @@ export class AppComponent {
 
     ///////////////FOR TESTING - REMOVE AFTER BUILD OF FRONT END
     this.checkState();
-    this.openBets("9000");
+    //this.openBets("1000");
     this.displayBalance();
     this.displayTokenBalance();
-    //this.buyTokens("1");
-    //this.bet("1");
+    //this.buyTokens("2");
+    //this.bet("2");
     //this.closeLottery();
+    this.displayPrize();
+    this.claimPrize("0.00000000000000001");
+
     
     
     ///////////////FOR TESTING - REMOVE AFTER BUILD OF FRONT END
@@ -188,7 +191,7 @@ export class AppComponent {
       console.log(`Bets closed (${receipt.transactionHash})\n`);
     }
   }
-  async  displayPrize(index: string): Promise<string> {
+  async  displayPrize(): Promise<string> {
     console.log("in display prize");
     var prize = '', prizeBN = undefined;
     if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
@@ -197,7 +200,8 @@ export class AppComponent {
       console.log(
         `The account of address ${
           this.walletAddress
-        } has earned a prize of ${prize} Tokens\n`
+        } has earned a prize of ${prize} Tokens\n
+        --and we can claim ${ethers.utils.parseEther(prize).mul(BASE_RATIO)}`
       );
     }
     return prize;
