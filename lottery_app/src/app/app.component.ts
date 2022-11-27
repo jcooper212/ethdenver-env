@@ -9,6 +9,7 @@ const LOTTERY_TOKEN_ADDRESS = "0xB9044E71c00D4Bf0269C474383aF3d5486024BF3";
 const BET_PRICE = 0.01;
 const BET_FEE = 0.02;
 const TOKEN_RATIO = 1;
+const BASE_RATIO = 1e14; //This is to make it way cheaper to buy with limited GoerliETH (alternatively convert to wei)
 
 const ALCHEMY_API_KEY="g1CS1wIDRIhZb0_9mofYmODfLJmh8vlH";
 const ETHERSCAN_API_KEY="14KQ8F8MHK4JDKYIVAMEJDCWF88MYIHZ8J";
@@ -80,14 +81,17 @@ export class AppComponent {
     this.lotteryContract = new ethers.Contract( LOTTERY_ADDRESS, lotteryInterface.abi, signer);
     this.lotteryTokenContract = new ethers.Contract( LOTTERY_TOKEN_ADDRESS , lotteryTokenInterface.abi, signer); //could be hardcoded vs returning from API
 
-    ///////////////will remove this after build of front end
+    ///////////////FOR TESTING - REMOVE AFTER BUILD OF FRONT END
     this.checkState();
-    //this.openBets("9000");
+    this.openBets("9000");
     this.displayBalance();
     this.displayTokenBalance();
+    //this.buyTokens("1");
+    //this.bet("1");
+    //this.closeLottery();
     
     
-    /////////////////will remove this after build of front end
+    ///////////////FOR TESTING - REMOVE AFTER BUILD OF FRONT END
 
     this.updateBlockchainInfo();
     setInterval( this.updateBlockchainInfo.bind(this), 5000);
@@ -153,8 +157,86 @@ export class AppComponent {
       const bal = await this.lotteryTokenContract["balanceOf"](this.walletAddress);
       console.log(`The Lottery Token balance for wallet ${this.walletAddress} is ${bal}`);
     }
-  }  
+  }
+  async buyTokens(amount: string) {
+    if (this.lotteryContract && this.provider && this.signer){
+      const tx = await this.lotteryContract["purchaseTokens"]({
+        value: ethers.utils.parseEther(amount).div(BASE_RATIO),
+      });
+      const receipt = await tx.wait();
+      console.log(`Tokens bought (${receipt.transactionHash})\n`);
+    }
+  }
 
+
+  async  bet(amount: string) {
+    console.log("in bets");
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const allowTx = await this.lotteryTokenContract["approve"](
+        this.lotteryContract.address, ethers.constants.MaxUint256);
+      await allowTx.wait();
+      const tx = await this.lotteryContract["betMany"](amount);
+      const receipt = await tx.wait();
+      console.log(`Bets placed (${receipt.transactionHash})\n`);
+    }
+  }
+  async closeLottery() {
+    console.log("in closeLottery");
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const tx = await this.lotteryContract["closeLottery"]();
+      const receipt = await tx.wait();
+      console.log(`Bets closed (${receipt.transactionHash})\n`);
+    }
+  }
+  async  displayPrize(index: string): Promise<string> {
+    console.log("in display prize");
+    var prize = '', prizeBN = undefined;
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      prizeBN = await this.lotteryContract["prize"](this.walletAddress);
+      prize = ethers.utils.formatEther(prizeBN);
+      console.log(
+        `The account of address ${
+          this.walletAddress
+        } has earned a prize of ${prize} Tokens\n`
+      );
+    }
+    return prize;
+  }
+  async claimPrize(amount: string) {
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const tx = await this.lotteryContract["prizeWithdraw"](ethers.utils.parseEther(amount));
+      const receipt = await tx.wait();
+      console.log(`Prize claimed (${receipt.transactionHash})\n`);
+    }
+  }
+  
+  async displayOwnerPool() {
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const balanceBN = await this.lotteryContract["ownerPool"]();
+      const balance = ethers.utils.formatEther(balanceBN);
+      console.log(`The owner pool has (${balance}) Tokens \n`);
+    }
+  }
+  
+  async  withdrawTokens(amount: string) {
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const tx = await this.lotteryContract["ownerWithdraw"](ethers.utils.parseEther(amount));
+      const receipt = await tx.wait();
+      console.log(`Withdraw confirmed (${receipt.transactionHash})\n`);
+    }
+  }
+  
+  async burnTokens(amount: string) {
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const allowTx = await this.lotteryTokenContract["approve"](this.lotteryContract.address, ethers.constants.MaxUint256);
+      const receiptAllow = await allowTx.wait();
+      console.log(`Allowance confirmed (${receiptAllow.transactionHash})\n`);
+      const tx = await this.lotteryContract["returnTokens"](ethers.utils.parseEther(amount));
+      const receipt = await tx.wait();
+      console.log(`Burn confirmed (${receipt.transactionHash})\n`);
+    }
+  }
+  
 
   //////LOTTERY FUNCTIONS///
 
