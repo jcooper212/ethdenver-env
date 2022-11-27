@@ -1,0 +1,133 @@
+<!--
+  <p>{{ someText }}</p>
+  <p>last block on Goerli Network was: {{ lastBlockNumber }}</p>
+  <p *ngIf="lastBlockNumber">
+    last block on Goerli Network was: {{ lastBlockNumber }}
+  </p>
+-->
+
+<div class="px-4 py-5 my-5 text-center">
+  <h1 class="display-5 fw-bold">Lottery DApp</h1>
+  <div class="col-lg-6 mx-auto">
+    <div *ngIf="!(wallet || signer)">
+      <p class="lead mb-4">Choose your connection method</p>
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <button
+          type="button"
+          class="btn btn-primary btn-lg px-4 gap-3"
+          (click)="createWallet()"
+        >
+          Create a Wallet
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-success btn-lg px-4 gap-3"
+          (click)="connectWallet()"
+        >
+          Connect a Wallet
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-info btn-lg px-4 gap-3"
+          (click)="importWallet(privateKeyWallet.value)"
+        >
+          Import a Wallet
+        </button>
+        <input
+          #privateKeyWallet
+          type="text"
+          placeholder="...private key here..."
+        />
+      </div>
+    </div>
+    <!--
+    <div class="bx--row" *ngFor="let obj of proposals">
+      <span class="bx--col-xs-5 bx--col-md-5"> {{ obj.lotteryContractAddress }} :</span>
+      <span class="bx--col-xs-5 bx--col-md-5">{{ obj.lotteryTokenContractAddress }} </span>
+    </div>
+    
+    <div>
+      Winner Name (so far): {{ winnerName }} <br />
+      Winning Proposal Index (so far): {{ winningProposal }}
+    </div>
+
+    <div *ngIf="wallet || signer">
+      <p class="lead mg-4">This is your address: {{ walletAddress }}</p>
+      <p class="lead mg-4">
+        This is the token address: {{ tokenContractAddress }}
+      </p>
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <div class="card p-2 m-2">Ether Balance: {{ etherBalance }}</div>
+        <div class="card p-2 m-2">Token Balance: {{ tokenBalance }}</div>
+        <div class="card p-2 m-2">Voting Power?: {{ votePower }}</div>
+        <div class="card p-2 m-2">
+          Voting Power for this Ballot: {{ votingPower }}
+        </div>
+      </div>
+
+      <div>
+        <p>Request:</p>
+        <button
+          type="button"
+          class="btn btn-info btn-lg px-4 gap-3"
+          (click)="requestTokens()"
+        >
+          Request Tokens
+        </button>
+      </div>
+
+      <div>
+        <p>Delegate Voting Power to yourself:</p>
+        <button
+          type="button"
+          class="btn btn-info btn-lg px-4 gap-3"
+          (click)="delegate()"
+        >
+          Delegate
+        </button>
+      </div>
+
+      <div>
+        <p>Vote:</p>
+        Which Proposal, specify a number?:
+        <input #voteId type="number" min="0" placeholder="0" />
+        
+        <br />
+        How much voting-power do you want to allocate to this proposal?:
+        <input
+          #votePowerToUse
+          type="number"
+          min="0"
+          [max]="votePower"
+          [placeholder]="votePower"
+        />
+        <button
+          type="button"
+          class="btn btn-info btn-lg px-4 gap-3"
+          (click)="vote(voteId.value, votePowerToUse.value)"
+        >
+          Vote
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+-->
+<!--
+<div class="alert alert-primary" role="alert">
+  A simple primary alert—check it out!
+</div>
+<div class="card" style="width: 18rem">
+  <img src="..." class="card-img-top" alt="...">
+  <div class="card-body">
+    <h5 class="card-title">Card title</h5>
+    <p class="card-text">Card text</p>
+    <button class="btn btn-primary" type="button" (click)="clickMe()">
+      Increase
+    </button>
+    <p>You have clicked {{ counter }} times!</p>
+  </div>
+</div>
+-->
