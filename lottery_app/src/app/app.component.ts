@@ -80,6 +80,15 @@ export class AppComponent {
     this.lotteryContract = new ethers.Contract( LOTTERY_ADDRESS, lotteryInterface.abi, signer);
     this.lotteryTokenContract = new ethers.Contract( LOTTERY_TOKEN_ADDRESS , lotteryTokenInterface.abi, signer); //could be hardcoded vs returning from API
 
+    ///////////////will remove this after build of front end
+    this.checkState();
+    //this.openBets("9000");
+    this.displayBalance();
+    this.displayTokenBalance();
+    
+    
+    /////////////////will remove this after build of front end
+
     this.updateBlockchainInfo();
     setInterval( this.updateBlockchainInfo.bind(this), 5000);
   }
@@ -105,24 +114,48 @@ export class AppComponent {
   async checkState() {
     ////const state = await this.lotteryContract.betsOpen();
     if (this.lotteryContract && this.provider){
-        this.lotteryContract["betsOpen"](this.walletAddress).then((state:boolean)=>{
+        this.lotteryContract["betsOpen"]().then((state:boolean)=>{
           this.lotteryState = state;
           console.log(`The lottery is ${state ? "open" : "closed"}\n`);
         });
         console.log(`The lottery is ${this.lotteryState ? "open" : "closed"}\n`);
-        if (!this.lotteryState) return;
+        //if (!this.lotteryState) return this.lotteryState;
         const currentBlock = await this.provider.getBlock("latest");
         const currentBlockDate = new Date(currentBlock.timestamp * 1000);
-        // const closingTime = await contract.betsClosingTime();
-        // const closingTimeDate = new Date(closingTime.toNumber() * 1000);
+        const closingTime = await this.lotteryContract["betsClosingTime"]();
+        //const receipt = await closingTime.wait();
+        const closingTimeDate = new Date(closingTime.toNumber() * 1000);
         console.log(
           `The last block was mined at ${currentBlockDate.toLocaleDateString()} : ${currentBlockDate.toLocaleTimeString()}\n`
         );
-        // console.log(
-        //   `lottery should close at  ${closingTimeDate.toLocaleDateString()} : ${closingTimeDate.toLocaleTimeString()}\n`
-        // );
+        console.log(
+          `lottery should close at  ${closingTimeDate.toLocaleDateString()} : ${closingTimeDate.toLocaleTimeString()}\n`
+        );
+    }
+    return this.lotteryState;
+  }  
+  async openBets(duration: string) {
+    if (this.lotteryContract && this.provider){
+      const currentBlock = await this.provider.getBlock("latest");
+      const tx = await this.lotteryContract["openBets"](currentBlock.timestamp + Number(duration));
+      const receipt = await tx.wait();
+      console.log(`Bets opened (${receipt.transactionHash})`);
+    }
+  }
+  async displayBalance() {
+    if (this.lotteryContract && this.provider && this.signer){
+      const bal = await this.signer.getBalance();
+      console.log(`The ETH balance for wallet ${this.walletAddress} is ${bal}`);
     }
   }  
+  async displayTokenBalance() {
+    if (this.lotteryTokenContract && this.provider && this.signer){
+      const bal = await this.lotteryTokenContract["balanceOf"](this.walletAddress);
+      console.log(`The Lottery Token balance for wallet ${this.walletAddress} is ${bal}`);
+    }
+  }  
+
+
   //////LOTTERY FUNCTIONS///
 
 
