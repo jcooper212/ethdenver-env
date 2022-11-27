@@ -9,10 +9,13 @@ let token: LotteryToken;
 let accounts: SignerWithAddress[];
 let signer: ethers.wallet;
 
-const BET_PRICE = 1;
-const BET_FEE = 0.2;
+const BET_PRICE = 0.01;
+const BET_FEE = 0.02;
 const TOKEN_RATIO = 1;
-const LOTTERY_CONTRACT_ADDRESS ='0x5e22603e0321e4B3e146f701B33CeAC328E13c62';
+const LOTTERY_CONTRACT_ADDRESS ='0x6e8Ea30fc113C862869EAFAf3701217cC9c5c17E';
+
+//LotteryToken is deployed at 0xB9044E71c00D4Bf0269C474383aF3d5486024BF3
+//const LOTTERY_CONTRACT_ADDRESS ='0x5e22603e0321e4B3e146f701B33CeAC328E13c62';
 //Lottery is deployed at 0x5e22603e0321e4B3e146f701B33CeAC328E13c62
 //LotteryToken is deployed at 0xEA76460bE2971bd5003D058D6494972ECA7C4d06
 
@@ -42,14 +45,19 @@ async function initContracts() {
     ///goerli
 
   //const contractFactory = await ethers.getContractFactory("Lottery");
+  console.log(`ratio conversions: fee is ${ethers.utils.parseEther(BET_FEE.toFixed(18)).div(1e15)}
+    & price is ${ethers.utils.parseEther(BET_PRICE.toFixed(18)).div(1e15)} 
+    & ratio is ${ethers.utils.parseEther("1").div(1e14)}
+    & ratio in wei is ${ethers.utils.parseEther("1").div(1e14)}`);
+
   const contractFactory = new Lottery__factory(signer);
   if (LOTTERY_CONTRACT_ADDRESS == ''){
       contract = await contractFactory.deploy(
         "LotteryToken",
         "LT0",
         TOKEN_RATIO,
-        ethers.utils.parseEther(BET_PRICE.toFixed(18)),
-        ethers.utils.parseEther(BET_FEE.toFixed(18))
+        ethers.utils.parseEther(BET_PRICE.toFixed(18)).div(1e15),
+        ethers.utils.parseEther(BET_FEE.toFixed(18)).div(1e15)
       );
       await contract.deployed();
   } else {
@@ -228,7 +236,7 @@ async function displayBalance(index: string) {
 
 async function buyTokens(index: string, amount: string) {
   const tx = await contract.connect(signer).purchaseTokens({
-    value: ethers.utils.parseEther(amount).div(TOKEN_RATIO),
+    value: ethers.utils.parseEther(amount).div(1e14),
   });
   const receipt = await tx.wait();
   console.log(`Tokens bought (${receipt.transactionHash})\n`);
