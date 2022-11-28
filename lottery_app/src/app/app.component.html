@@ -86,7 +86,7 @@
               lotteryPrizeForYouSmallerUnitsNumber > 0
             "
           >
-            <!-- can claim at any point whether open or closed, as long as something in the pool -->
+            <!-- can claim at any point whether open or closed, as long as prize amount set aside for you -->
             <input
               #numOfPrizeTokensToWithdraw
               type="number"
@@ -123,6 +123,22 @@
         <div class="card p-2 m-2">
           Your Lottery Token Balance: {{ tokenBalance }} tokens (or
           {{ tokenBalanceSmallerUnits }} cents/units of token)
+
+          <div *ngIf="tokenBalanceSmallerUnits && tokenBalanceSmallerUnits > 0">
+            # of your Tokens to burn:
+            <input #numOfTokensToBurn type="number" min="0" placeholder="0" />
+            <br />
+            <button
+              type="button"
+              class="btn btn-success btn-lg px-4 gap-3"
+              (click)="burnTokens(numOfTokensToBurn.value)"
+            >
+              Burn your Tokens (up to {{ tokenBalance }} ({{
+                tokenBalanceSmallerUnits
+              }}
+              units) )
+            </button>
+          </div>
         </div>
       </div>
 
