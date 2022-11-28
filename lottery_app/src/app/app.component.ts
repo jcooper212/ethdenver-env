@@ -4,14 +4,20 @@ import lotteryInterface  from '../assets/Lottery.json';
 import lotteryTokenInterface  from '../assets/LotteryToken.json';
 import { HttpClient } from '@angular/common/http';
 
-const LOTTERY_ADDRESS = "0x1B0eAb6A0761a64718A79135B198B4a3c566A1Dd"; //put in BE now
-const LOTTERY_TOKEN_ADDRESS = "0xea1ffa54EE4016cc738556556a131bFCfA571c0C";
+//JC212
+//const LOTTERY_ADDRESS = "0x1B0eAb6A0761a64718A79135B198B4a3c566A1Dd"; 
+//const LOTTERY_TOKEN_ADDRESS = "0xea1ffa54EE4016cc738556556a131bFCfA571c0C";
+//Arians:
+const LOTTERY_ADDRESS = "0x0a56d575cCDD80fC007C872352aa2316F4E39325"; 
+const LOTTERY_TOKEN_ADDRESS = "0xb5c7509A14b3e84C2A2D6B7D38024De23ee77904";
+
+
 const BET_PRICE = 0.01;
 const BET_FEE = 0.02;
 const TOKEN_RATIO = 1;
 const BASE_RATIO = 1e15; //This is to make it way cheaper to buy with limited GoerliETH (alternatively convert to wei)
 
-const ALCHEMY_API_KEY="g1CS1wIDRIhZb0_9mofYmODfLJmh8vlH";
+const ALCHEMY_API_KEY="MwLDDsXrUc33uY_JtGf7si7uJbd0cyQy";
 const ETHERSCAN_API_KEY="14KQ8F8MHK4JDKYIVAMEJDCWF88MYIHZ8J";
 
 declare global {
@@ -34,13 +40,26 @@ export class AppComponent {
   etherBalance: number | undefined = 0;
   lotteryContract: ethers.Contract | undefined;
   lotteryContractAddress: string | undefined;  
+  lotteryOwnerAddress: string | undefined;
   tokenBalance: number | undefined = 0;
+  tokenBalanceSmallerUnits: number | undefined = 0;
   lotteryTokenContract: ethers.Contract | undefined;
   lotteryTokenContractAddress: string | undefined;
   lotteryState: boolean | undefined;
-  winnerName: string | undefined;
-  winningProposal: number | undefined; 
+  lotteryClosingTimeDate: Date | undefined;
+  currentTimeDate: Date | undefined;
+  lotteryPrizeForYou: string | undefined;
+  lotteryPrizeForYouSmallerUnits: string | undefined;
+  lotteryPrizeForYouSmallerUnitsNumber: number | undefined;
+  prizePool: string | undefined;
+  prizePoolSmallerUnits: string | undefined;
+  ownerPool: string | undefined;
+  ownerPoolSmallerUnits: string | undefined;
+  ownerPoolSmallerUnitsNumber: number | undefined;
   
+  
+  isOwner: boolean = false; 
+
   constructor(private http: HttpClient){}
 
   async createWallet() {
@@ -81,6 +100,32 @@ export class AppComponent {
     this.lotteryContract = new ethers.Contract( LOTTERY_ADDRESS, lotteryInterface.abi, signer);
     this.lotteryTokenContract = new ethers.Contract( LOTTERY_TOKEN_ADDRESS , lotteryTokenInterface.abi, signer); //could be hardcoded vs returning from API
 
+    
+//    this.isOwner = (lotteryOwnerAddress == this.walletAddress);
+
+    this.lotteryContract['owner']().then((address: string) => {
+      
+      this.lotteryOwnerAddress = address;
+      if (this.walletAddress == address) {
+        this.isOwner = true;
+        console.log('you are the owner');
+        console.log("lotteryOwnerAddress:" + this.lotteryOwnerAddress);
+        console.log("this.walletAddress:" + this.walletAddress);
+      }
+      else {
+        this.isOwner = false;
+        console.log('you are not the owner');
+        console.log("lotteryOwnerAddress:" + this.lotteryOwnerAddress);
+        console.log("this.walletAddress:" + this.walletAddress);
+      }
+    });
+    
+    this.checkState();
+    //const { provider: ethereum } = provider;
+    //ethereum.on('accountsChanged', ()=>{}}; //check wallet address and change walletAddress+isOwner 
+    //ethereum.off('accountsChanged',()=>{}};
+
+    /*
     ///////////////FOR TESTING - REMOVE AFTER BUILD OF FRONT END
     this.checkState();
     //this.openBets("1000");
@@ -91,13 +136,14 @@ export class AppComponent {
     //this.closeLottery();
     this.displayPrize();
     this.claimPrize("0.00000000000000001");
-
+    */
     
     
     ///////////////FOR TESTING - REMOVE AFTER BUILD OF FRONT END
 
     this.updateBlockchainInfo();
     setInterval( this.updateBlockchainInfo.bind(this), 5000);
+    setInterval( ()=>{ this.currentTimeDate = new Date(); } , 1000 );
   }
   importWallet(private_key: string){
     console.log('private_key from UI: '+ private_key);
@@ -138,6 +184,8 @@ export class AppComponent {
         console.log(
           `lottery should close at  ${closingTimeDate.toLocaleDateString()} : ${closingTimeDate.toLocaleTimeString()}\n`
         );
+        
+        this.lotteryClosingTimeDate = closingTimeDate;
     }
     return this.lotteryState;
   }  
@@ -147,6 +195,16 @@ export class AppComponent {
       const tx = await this.lotteryContract["openBets"](currentBlock.timestamp + Number(duration));
       const receipt = await tx.wait();
       console.log(`Bets opened (${receipt.transactionHash})`);
+
+      this.checkState();
+      //update betsOpen boolean
+      /*
+      this.lotteryContract["betsOpen"]().then((state:boolean)=>{
+        this.lotteryState = state;
+        console.log(`The lottery is NOW ${state ? "open" : "closed"} after openBets`);
+      });
+      */
+
     }
   }
   async displayBalance() {
@@ -171,9 +229,19 @@ export class AppComponent {
     }
   }
 
-
-  async  bet(amount: string) {
-    console.log("in bets");
+  async bet() {
+    console.log("in bet()");
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const allowTx = await this.lotteryTokenContract["approve"](
+        this.lotteryContract.address, ethers.constants.MaxUint256);
+      await allowTx.wait();
+      const tx = await this.lotteryContract["bet"]();
+      const receipt = await tx.wait();
+      console.log(`Bets placed (${receipt.transactionHash})\n`);
+    }
+  }
+  async betMany(amount: string) {
+    console.log("in betMany()");
     if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
       const allowTx = await this.lotteryTokenContract["approve"](
         this.lotteryContract.address, ethers.constants.MaxUint256);
@@ -189,24 +257,28 @@ export class AppComponent {
       const tx = await this.lotteryContract["closeLottery"]();
       const receipt = await tx.wait();
       console.log(`Bets closed (${receipt.transactionHash})\n`);
+      this.checkState(); //do this immediately instead of waiting for updateBlockChain (which doesn't seem to be working now anyway for some reason when closing.
     }
   }
-  async  displayPrize(): Promise<string> {
-    console.log("in display prize");
+  async  displayPrizeAvailableForYourWallet(): Promise<string> {
+    //console.log("in display prize");
     var prize = '', prizeBN = undefined;
     if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
       prizeBN = await this.lotteryContract["prize"](this.walletAddress);
       prize = ethers.utils.formatEther(prizeBN);
+      this.lotteryPrizeForYou = prize;
+      this.lotteryPrizeForYouSmallerUnits = prizeBN;
+      this.lotteryPrizeForYouSmallerUnitsNumber = prizeBN.toNumber();
       console.log(
         `The account of address ${
           this.walletAddress
-        } has earned a prize of ${prize} Tokens\n
+        } has earned a prize of ${prizeBN}, ${prize} Tokens\n
         --and we can claim ${ethers.utils.parseEther(prize).mul(BASE_RATIO)}`
       );
     }
     return prize;
   }
-  async claimPrize(amount: string) {
+  async prizeWithdrawTokens(amount: string) {//claimPrize
     if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
       const tx = await this.lotteryContract["prizeWithdraw"](ethers.utils.parseEther(amount));
       const receipt = await tx.wait();
@@ -214,15 +286,27 @@ export class AppComponent {
     }
   }
   
-  async displayOwnerPool() {
+  async getPrizePool() {
+    if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
+      const balanceBN = await this.lotteryContract["prizePool"]();
+      const balance = ethers.utils.formatEther(balanceBN);
+      this.prizePool = balance;
+      this.prizePoolSmallerUnits = balanceBN.toString();
+      console.log(`The prize pool has ${balance} (${balanceBN}) Tokens \n`);
+    }
+  }
+  async getOwnerPool() {
     if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
       const balanceBN = await this.lotteryContract["ownerPool"]();
       const balance = ethers.utils.formatEther(balanceBN);
-      console.log(`The owner pool has (${balance}) Tokens \n`);
+      this.ownerPool = balance;
+      this.ownerPoolSmallerUnits = balanceBN.toString();
+      this.ownerPoolSmallerUnitsNumber = balanceBN;
+      console.log(`The owner pool has ${balance} (${balanceBN}) Tokens \n`);
     }
   }
   
-  async  withdrawTokens(amount: string) {
+  async ownerWithdrawTokens(amount: string) {
     if (this.lotteryContract && this.lotteryTokenContract && this.provider && this.signer){
       const tx = await this.lotteryContract["ownerWithdraw"](ethers.utils.parseEther(amount));
       const receipt = await tx.wait();
@@ -261,6 +345,7 @@ export class AppComponent {
         //console.log( tokenBalanceBigNumber );
         //console.log( ethers.utils.formatEther(tokenBalanceBigNumber) );
         this.tokenBalance = parseFloat( ethers.utils.formatEther(tokenBalanceBigNumber) );
+        this.tokenBalanceSmallerUnits = parseFloat( tokenBalanceBigNumber.toString() );
       });
 
       if(this.wallet) {
@@ -276,6 +361,11 @@ export class AppComponent {
           //console.log( ethers.utils.formatEther(balanceBigNumber) );
         });
       }
+
+      //this.lotteryPrize = await this.displayPrize();
+      await this.getPrizePool();
+      await this.getOwnerPool();
+
     }
   }
   // vote(voteId: number|string, votePowerToUse: number|string){ //well it comes over as a string

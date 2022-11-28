@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+//import { ethers } from "hardhat";
 import * as readline from "readline";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Lottery, LotteryToken, Lottery__factory, LotteryToken__factory } from "../typechain-types";
@@ -7,41 +7,51 @@ import { ethers } from "ethers";
 let contract: Lottery;
 let token: LotteryToken;
 let accounts: SignerWithAddress[];
-let signer: ethers.wallet;
+let signer: ethers.Wallet;
 
 const BET_PRICE = 0.01;
 const BET_FEE = 0.02;
 const TOKEN_RATIO = 1;
-const LOTTERY_CONTRACT_ADDRESS ='0x6e8Ea30fc113C862869EAFAf3701217cC9c5c17E';
+const LOTTERY_CONTRACT_ADDRESS ='';
+//Arian: from Jamshed's orig address: 0x6e8Ea30fc113C862869EAFAf3701217cC9c5c17E
 
 //LotteryToken is deployed at 0xB9044E71c00D4Bf0269C474383aF3d5486024BF3
 //const LOTTERY_CONTRACT_ADDRESS ='0x5e22603e0321e4B3e146f701B33CeAC328E13c62';
 //Lottery is deployed at 0x5e22603e0321e4B3e146f701B33CeAC328E13c62
 //LotteryToken is deployed at 0xEA76460bE2971bd5003D058D6494972ECA7C4d06
 
+
+//Arian: 
+const MM_0_PRIVATE_KEY="PUT_HERE";
+//^^ 
+const MM_1_PRIVATE_KEY="PUT_HERE";
+//^^ 
+
+const ALCHEMY_API_KEY="MwLDDsXrUc33uY_JtGf7si7uJbd0cyQy";
+
 async function main() {
   await initContracts();
-  await initAccounts();
+  //await initAccounts();
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-  mainMenu(rl);
+  //mainMenu(rl);
 }
 
 async function initContracts() {
   ///goerli  
   //connect to provider
     const provider = ethers.getDefaultProvider("goerli", {
-      alchemy: process.env.ETH_GOERLI_KEY
+      alchemy: ALCHEMY_API_KEY
     });
-    const wallet = new ethers.Wallet(process.env.ETH_P3);
+    const wallet = new ethers.Wallet(MM_0_PRIVATE_KEY);
     signer = wallet.connect(provider);
     const balance = await signer.getBalance();
     console.log(`W3 balance is ${signer.address} / ${balance} wei`);
   
     //local provider
-    accounts = await ethers.getSigners();
+    //accounts = await ethers.getSigners();
     ///goerli
 
   //const contractFactory = await ethers.getContractFactory("Lottery");
@@ -72,9 +82,9 @@ async function initContracts() {
 }
 
 async function initAccounts() {
-  accounts = await ethers.getSigners();
+  //accounts = await ethers.getSigners();
 }
-
+/*
 async function mainMenu(rl: readline.Interface) {
   menuOptions(rl);
 }
@@ -311,6 +321,7 @@ async function burnTokens(index: string, amount: string) {
   const receipt = await tx.wait();
   console.log(`Burn confirmed (${receipt.transactionHash})\n`);
 }
+*/
 
 main().catch((error) => {
   console.error(error);

@@ -27,13 +27,6 @@
         >
           Connect a Wallet
         </button>
-        <button
-        type="button"
-        class="btn btn-success btn-lg px-4 gap-3"
-        (click)="checkState()"
-      >
-        Check State of Lottery
-      </button>
 
         <button
           type="button"
@@ -49,6 +42,185 @@
         />
       </div>
     </div>
+
+    <div *ngIf="wallet || signer">
+      <p class="lead mg-4">This is your address: {{ walletAddress }}</p>
+      <p class="lead mg-4">
+        This is the lottery token address:
+        {{ lotteryTokenContractAddress }}
+        <br />
+        This is the lottery address:
+        {{ lotteryContractAddress }}
+        <br />
+        Are you the owner of this Lottery contract: {{ isOwner }}
+        <br />
+        Current prize of Lottery is: {{ prizePool }} ({{
+          prizePoolSmallerUnits
+        }}
+        units/cents)
+        <br />
+        Current ownerPool of Lottery is: {{ ownerPool }} ({{
+          ownerPoolSmallerUnits
+        }}
+        units/cents)
+      </p>
+
+      <div>
+        <p>
+          Lottery State is: {{ lotteryState ? "Open" : "Closed" }}
+          <span
+            *ngIf="
+              lotteryState &&
+              lotteryClosingTimeDate != undefined &&
+              currentTimeDate != undefined &&
+              lotteryClosingTimeDate < currentTimeDate
+            "
+          >
+            (but closing time is passed so can't bet anymore)
+          </span>
+
+          See if you can withdraw a prize, if so, then ...
+          <span
+            *ngIf="
+              lotteryPrizeForYouSmallerUnitsNumber &&
+              lotteryPrizeForYouSmallerUnitsNumber > 0
+            "
+          >
+            <!-- can claim at any point whether open or closed, as long as something in the pool -->
+            <input
+              #numOfPrizeTokensToWithdraw
+              type="number"
+              min="0"
+              placeholder="0"
+            />
+            <button
+              type="button"
+              class="btn btn-success btn-lg px-4 gap-3"
+              (click)="prizeWithdrawTokens(numOfPrizeTokensToWithdraw.value)"
+            >
+              Claim Prize Pool Tokens (up to {{ lotteryPrizeForYou }} ({{
+                lotteryPrizeForYouSmallerUnits
+              }}
+              units) )
+            </button>
+          </span>
+        </p>
+
+        <p *ngIf="lotteryState">
+          When open, should allowed to take bets up until this date-time: <br />
+          <!--{{ lotteryClosingTimeDate }}-->
+          {{ lotteryClosingTimeDate?.toLocaleDateString() }}
+          {{ lotteryClosingTimeDate?.toLocaleTimeString() }}
+          <br />
+          Current date-time is:<br />
+          {{ currentTimeDate?.toLocaleDateString() }}
+          {{ currentTimeDate?.toLocaleTimeString() }}
+        </p>
+      </div>
+
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <div class="card p-2 m-2">Ether Balance: {{ etherBalance }}</div>
+        <div class="card p-2 m-2">
+          Your Lottery Token Balance: {{ tokenBalance }} tokens (or
+          {{ tokenBalanceSmallerUnits }} cents/units of token)
+        </div>
+      </div>
+
+      <input #numOfTokensToBuy type="number" min="0" placeholder="0" />
+      <button
+        type="button"
+        class="btn btn-success btn-lg px-4 gap-3"
+        (click)="buyTokens(numOfTokensToBuy.value)"
+      >
+        Buy Lottery Tokens
+      </button>
+
+      <div *ngIf="(wallet || signer) && isOwner">
+        <hr />
+
+        <div *ngIf="!lotteryState">
+          Note to owner: Currently you are the Lottery owner but lottery is
+          closed.
+          <br />
+          <!-- if lottery is closed -->
+          Enter # of seconds after current time for the Lottery Duration:
+          <input
+            #numOfSecondsForDuration
+            type="number"
+            min="0"
+            placeholder="0"
+          />
+          <button
+            type="button"
+            class="btn btn-success btn-lg px-4 gap-3"
+            (click)="openBets(numOfSecondsForDuration.value)"
+          >
+            Open Bets for Lottery
+          </button>
+        </div>
+
+        <div *ngIf="lotteryState">
+          <!-- if lottery is open -->
+          Note to owner: Currently you are the Lottery owner and lottery is
+          open.
+          <br />
+          <button
+            type="button"
+            class="btn btn-success btn-lg px-4 gap-3"
+            (click)="closeLottery()"
+          >
+            Close Lottery
+          </button>
+        </div>
+        <div
+          *ngIf="ownerPoolSmallerUnitsNumber && ownerPoolSmallerUnitsNumber > 0"
+        >
+          <!-- can claim at any point whether open or closed, as long as something in the pool -->
+          <input
+            #numOfOwnerTokensToWithdraw
+            type="number"
+            min="0"
+            placeholder="0"
+          />
+          <button
+            type="button"
+            class="btn btn-success btn-lg px-4 gap-3"
+            (click)="ownerWithdrawTokens(numOfOwnerTokensToWithdraw.value)"
+          >
+            Claim Owner Pool Tokens (up to {{ ownerPoolSmallerUnitsNumber }})
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      *ngIf="
+        lotteryState &&
+        lotteryClosingTimeDate != undefined &&
+        currentTimeDate != undefined &&
+        lotteryClosingTimeDate >= currentTimeDate
+      "
+    >
+      Lottery is open, so bet below:
+      <input #numOfTokensToBet type="number" min="0" placeholder="0" />
+      <button
+        type="button"
+        class="btn btn-success btn-lg px-4 gap-3"
+        (click)="betMany(numOfTokensToBet.value)"
+      >
+        Bet Many
+      </button>
+      <br />
+      or just do a standard bet:
+      <button
+        type="button"
+        class="btn btn-success btn-lg px-4 gap-3"
+        (click)="bet()"
+      >
+        Bet Once
+      </button>
+    </div>
+
     <!--
     <div class="bx--row" *ngFor="let obj of proposals">
       <span class="bx--col-xs-5 bx--col-md-5"> {{ obj.lotteryContractAddress }} :</span>
@@ -122,7 +294,7 @@
   </div>
 </div>
 -->
-<!--
+    <!--
 <div class="alert alert-primary" role="alert">
   A simple primary alert—check it out!
 </div>
@@ -138,3 +310,5 @@
   </div>
 </div>
 -->
+  </div>
+</div>
